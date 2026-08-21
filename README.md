@@ -1,4 +1,4 @@
-# Shop
+# EYOUTH-30910010506396-ShopSphere
 
 Full-stack e-commerce app. React frontend, Express backend, PostgreSQL, MongoDB.
 
