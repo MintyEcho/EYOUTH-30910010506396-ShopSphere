@@ -9,7 +9,7 @@ const authRoutes = require("./routes/authRoutes");
 const categoryRoutes = require("./routes/categoryRoutes");
 const cartRoutes = require("./routes/cartRoutes");
 const statsRoutes = require("./routes/statsRoutes");
-
+const { structuredLog, errorLog } = require("./middlewares/logger");
 const app = express();
 
 app.use(helmet());
@@ -33,7 +33,7 @@ app.use("/api", apiLimiter);
 // production on Vercel, swap multer's disk storage for an object store
 // (e.g. Vercel Blob, S3, Cloudinary) before relying on image upload.
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
-
+app.use(structuredLog);
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/categories", categoryRoutes);
@@ -62,5 +62,8 @@ app.get("/api/health", async (req, res) => {
   const healthy = checks.postgres === "ok" && checks.mongo === "ok";
   res.status(healthy ? 200 : 503).json({ status: healthy ? "ok" : "degraded", checks });
 });
+
+
+app.use(errorLog);
 
 module.exports = app;
