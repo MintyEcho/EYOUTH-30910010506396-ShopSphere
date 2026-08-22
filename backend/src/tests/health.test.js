@@ -8,7 +8,15 @@ jest.mock("mongoose", () => ({
   connection: { readyState: 1 },
 }));
 
-const request = require("supertest");
+const request = require("supertest");jest.mock("mongoose", () => {
+  const actual = jest.requireActual("mongoose");
+  return {
+    ...actual,
+    Schema: actual.Schema,
+    model: actual.model,
+    connection: { readyState: 1 },
+  };
+});
 const app = require("../app");
 const prisma = require("../config/prisma");
 
