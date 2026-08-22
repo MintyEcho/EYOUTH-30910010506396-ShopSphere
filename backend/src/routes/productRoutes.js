@@ -3,9 +3,6 @@ const ctrl = require("../controllers/productController");
 const auth = require("../middlewares/auth");
 const requireRole = require("../middlewares/requireRole");
 const upload = require("../middlewares/upload");
-const reviewRoutes = require("./reviewRoutes");
-
-router.use("/:productId/reviews", reviewRoutes);
 
 router.get("/", ctrl.getAll);
 router.get("/:id", ctrl.getOne);
