@@ -1,0 +1,68 @@
+name: ShopSphere CI/CD
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  ci:
+    name: Install, Build & Test
+    runs-on: ubuntu-latest
+    environment: development
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build backend (generate Prisma client)
+        working-directory: backend
+        run: npx prisma generate
+
+      - name: Build frontend (Vite production bundle)
+        working-directory: frontend
+        run: npm run build
+
+      - name: Run backend tests
+        working-directory: backend
+        run: npm test
+        env:
+          JWT_SECRET: ci-test-secret
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+          MONGO_URI: mongodb://localhost:27017/ci
+
+  deploy-production:
+    name: Deploy to Production
+    needs: ci
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+
+      - name: Deploy backend to Vercel production
+        run: vercel deploy --prod --yes
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_BACKEND }}
+
+      - name: Deploy frontend to Vercel production
+        run: vercel deploy --prod --yes
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_FRONTEND }}
